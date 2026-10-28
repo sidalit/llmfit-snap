@@ -1,0 +1,76 @@
+name: llmfit
+base: core26
+version: '1.1.17'
+title: llmfit
+icon: snap/gui/llmfit.png
+summary: Find local language models that fit your hardware
+description: |
+  llmfit compares language models with your CPU, RAM and GPU capacity.
+  Browse recommendations in the terminal, produce JSON reports, download
+  models and connect to running inference servers such as Ollama.
+
+  Connect hardware access before starting:
+
+     sudo snap connect llmfit:hardware-observe
+     sudo snap connect llmfit:system-observe
+     llmfit
+
+  The web dashboard is available with llmfit serve at http://localhost:8787.
+  GPU detection uses kernel and PCI information; NVIDIA memory may be
+  estimated. Use --memory to override it. Host inference executables and
+  hidden model directories are not accessible from this strict snap.
+license: MIT
+grade: stable
+confinement: strict
+website: https://llmfit.axjns.dev
+source-code:
+  - https://github.com/AlexsJones/llmfit
+  - https://github.com/sidalit/llmfit-snap
+issues:
+  - https://github.com/AlexsJones/llmfit/issues
+  - https://github.com/sidalit/llmfit-snap/issues
+contact: https://github.com/sidalit/llmfit-snap/issues
+
+platforms:
+  amd64:
+  arm64:
+
+layout:
+  /usr/share/misc/pci.ids:
+    bind-file: $SNAP/usr/share/misc/pci.ids
+
+apps:
+  llmfit:
+    command: bin/llmfit
+    plugs:
+      - home
+      - network
+      - network-bind
+      - hardware-observe
+      - system-observe
+      - removable-media
+      - x11
+    environment:
+      XDG_CONFIG_HOME: $SNAP_USER_DATA/.config
+      XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
+      XDG_CACHE_HOME: $SNAP_USER_COMMON/.cache
+
+parts:
+  llmfit:
+    plugin: rust
+    source: https://github.com/AlexsJones/llmfit.git
+    source-tag: v$SNAPCRAFT_PROJECT_VERSION
+    rust-path: [llmfit-tui]
+    build-packages:
+      - build-essential
+      - nodejs
+      - npm
+    stage-packages:
+      - curl
+      - pci.ids
+      - pciutils
+    override-build: |
+      npm --prefix llmfit-web ci
+      npm --prefix llmfit-web run build
+      craftctl default
+      install -Dm644 LICENSE "$CRAFT_PART_INSTALL/share/doc/llmfit/LICENSE"
