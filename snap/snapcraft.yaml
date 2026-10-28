@@ -1,6 +1,6 @@
 name: llmfit
 base: core26
-version: '1.1.17'
+version: '1.1.18'
 title: llmfit
 icon: snap/gui/llmfit.png
 summary: Find local language models that fit your hardware
